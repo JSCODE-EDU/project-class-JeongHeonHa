@@ -13,9 +13,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,7 +67,7 @@ class PostControllerTest {
         //given
         PostResponse post = new PostResponse(1L, "title", "content");
 
-        given(postService.findById(1L)).willReturn(post);
+        given(postService.findPostById(1L)).willReturn(post);
 
         //when //then
         mockMvc.perform(get("/posts/1"))
@@ -88,7 +85,7 @@ class PostControllerTest {
         given(postService.findUpdatedPostById(1L)).willReturn(response);
 
         //when //then
-        mockMvc.perform(post("/posts/edit/{id}", 1L)
+        mockMvc.perform(put("/posts/{id}", 1L)
                         .content(objectMapper.writeValueAsString(request))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)

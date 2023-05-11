@@ -22,7 +22,7 @@ public class PostController {
     @PostMapping
     public ResponseEntity<PostResponse> savePost(@RequestBody PostNewRequest postNewRequest) {
         Long savedPostId = postService.savePost(postNewRequest);
-        PostResponse postResponse = postService.findById(savedPostId);
+        PostResponse postResponse = postService.findPostById(savedPostId);
 
         return new ResponseEntity<>(postResponse, HttpStatus.OK);
     }
@@ -36,7 +36,7 @@ public class PostController {
 
     @GetMapping("/{id}")
     public ResponseEntity<PostResponse> findPostById(@PathVariable Long id) {
-        PostResponse postResponse = postService.findById(id);
+        PostResponse postResponse = postService.findPostById(id);
 
         return new ResponseEntity<>(postResponse, HttpStatus.OK);
     }

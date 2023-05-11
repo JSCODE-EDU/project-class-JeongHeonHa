@@ -41,7 +41,7 @@ public class PostService {
                 .collect(Collectors.toList());
     }
 
-    public PostResponse findById(Long id) {
+    public PostResponse findPostById(Long id) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new IllegalStateException("해당 게시글이 없습니다."));
 

@@ -37,7 +37,7 @@ class PostServiceTest {
         Long savedId = postService.savePost(post);
 
         //when
-        PostResponse postResponse = postService.findById(savedId);
+        PostResponse postResponse = postService.findPostById(savedId);
 
         //then
         assertThat(savedId).isEqualTo(postResponse.getId());
@@ -72,7 +72,7 @@ class PostServiceTest {
         Long savedId = postService.savePost(post);
 
         //when
-        PostResponse result = postService.findById(savedId);
+        PostResponse result = postService.findPostById(savedId);
 
         //then
         assertThat(result.getId()).isEqualTo(savedId);
@@ -121,6 +121,6 @@ class PostServiceTest {
 
         //then
         assertThrows(IllegalStateException.class,
-                () -> postService.findById(savedId));
+                () -> postService.findPostById(savedId));
     }
 }
