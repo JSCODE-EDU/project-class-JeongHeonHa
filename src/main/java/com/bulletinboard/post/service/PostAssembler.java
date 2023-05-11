@@ -19,6 +19,8 @@ public class PostAssembler {
                 .id(post.getId())
                 .title(post.getTitleValue())
                 .content(post.getContentValue())
+                .createdDate(post.getCreatedDate())
+                .updatedDate(post.getUpdatedDate())
                 .build();
     }
 
@@ -27,6 +29,8 @@ public class PostAssembler {
                 .id(post.getId())
                 .title(post.getTitleValue())
                 .content(post.getContentValue())
+                .createdDate(post.getCreatedDate())
+                .updatedDate(post.getUpdatedDate())
                 .build();
     }
 }

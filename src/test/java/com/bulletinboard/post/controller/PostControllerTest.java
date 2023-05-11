@@ -14,6 +14,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,7 +52,7 @@ class PostControllerTest {
     void findAllPosts() throws Exception {
         //given
         List<PostResponse> posts = new ArrayList<>();
-        posts.add(new PostResponse(1L, "title1", "content1"));
+        posts.add(new PostResponse(1L, "title1", "content1", LocalDateTime.now(), LocalDateTime.now()));
 
         given(postService.findAllPosts()).willReturn(posts);
 
@@ -65,7 +66,7 @@ class PostControllerTest {
     @DisplayName("id로 게시글을 찾는다.")
     void findPostById() throws Exception {
         //given
-        PostResponse post = new PostResponse(1L, "title", "content");
+        PostResponse post = new PostResponse(1L, "title", "content", LocalDateTime.now(), LocalDateTime.now());
 
         given(postService.findPostById(1L)).willReturn(post);
 
@@ -80,7 +81,7 @@ class PostControllerTest {
     void updatePost() throws Exception {
         //given
         PostUpdateRequest request = new PostUpdateRequest("title1", "content1");
-        PostUpdateResponse response = new PostUpdateResponse(1L, "title1", "content1");
+        PostUpdateResponse response = new PostUpdateResponse(1L, "title1", "content1", LocalDateTime.now(), LocalDateTime.now());
 
         given(postService.findUpdatedPostById(1L)).willReturn(response);
 

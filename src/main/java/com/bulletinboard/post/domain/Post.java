@@ -1,5 +1,6 @@
 package com.bulletinboard.post.domain;
 
+import com.bulletinboard.common.BaseTimeEntity;
 import com.bulletinboard.post.domain.vo.Content;
 import com.bulletinboard.post.domain.vo.Title;
 import lombok.Getter;
@@ -11,7 +12,7 @@ import javax.persistence.Id;
 
 @Getter
 @Entity
-public class Post {
+public class Post extends BaseTimeEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
