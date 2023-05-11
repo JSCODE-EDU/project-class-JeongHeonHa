@@ -14,11 +14,12 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/posts")
 public class PostController {
 
     private final PostService postService;
 
-    @PostMapping("/posts")
+    @PostMapping
     public ResponseEntity<PostResponse> savePost(@RequestBody PostNewRequest postNewRequest) {
         Long savedPostId = postService.savePost(postNewRequest);
         PostResponse postResponse = postService.findById(savedPostId);
@@ -26,29 +27,29 @@ public class PostController {
         return new ResponseEntity<>(postResponse, HttpStatus.OK);
     }
 
-    @GetMapping("/posts")
+    @GetMapping
     public ResponseEntity<List<PostResponse>> findAllPosts() {
         List<PostResponse> postResponses = postService.findAllPosts();
 
         return new ResponseEntity<>(postResponses, HttpStatus.OK);
     }
 
-    @GetMapping("/posts/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<PostResponse> findPostById(@PathVariable Long id) {
         PostResponse postResponse = postService.findById(id);
 
         return new ResponseEntity<>(postResponse, HttpStatus.OK);
     }
 
-    @PostMapping("/posts/edit/{id}")
-    public ResponseEntity<PostUpdateResponse> updatePost(@PathVariable Long id, @RequestBody PostUpdateRequest postUpdateRequest) {
+    @PutMapping("/{id}")
+    public ResponseEntity<PostUpdateResponse> updatePostById(@PathVariable Long id, @RequestBody PostUpdateRequest postUpdateRequest) {
         postService.updatePost(id, postUpdateRequest);
         PostUpdateResponse postUpdateResponse = postService.findUpdatedPostById(id);
 
         return new ResponseEntity<>(postUpdateResponse, HttpStatus.OK);
     }
 
-    @DeleteMapping("/posts/{id}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePost(@PathVariable Long id) {
         postService.deletePostById(id);
 
