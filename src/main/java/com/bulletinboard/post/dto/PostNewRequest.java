@@ -1,5 +1,6 @@
 package com.bulletinboard.post.dto;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,9 +10,10 @@ public class PostNewRequest {
     private String title;
     private String content;
 
-    private PostNewRequest() {
+    protected PostNewRequest() {
     }
 
+    @Builder
     public PostNewRequest(String title, String content) {
         this.title = title;
         this.content = content;

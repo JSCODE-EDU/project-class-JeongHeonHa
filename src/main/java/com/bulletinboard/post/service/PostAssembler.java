@@ -15,10 +15,18 @@ public class PostAssembler {
     }
 
     public static PostResponse toDto(Post post) {
-        return new PostResponse(post.getId(), post.getTitleValue(), post.getContentValue());
+        return PostResponse.builder()
+                .id(post.getId())
+                .title(post.getTitleValue())
+                .content(post.getContentValue())
+                .build();
     }
 
     public static PostUpdateResponse toUpdateDto(Post post) {
-        return new PostUpdateResponse(post.getId(), post.getTitleValue(), post.getContentValue());
+        return PostUpdateResponse.builder()
+                .id(post.getId())
+                .title(post.getTitleValue())
+                .content(post.getContentValue())
+                .build();
     }
 }

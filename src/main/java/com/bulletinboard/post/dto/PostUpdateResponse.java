@@ -1,5 +1,6 @@
 package com.bulletinboard.post.dto;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,9 +11,10 @@ public class PostUpdateResponse {
     private String title;
     private String content;
 
-    private PostUpdateResponse() {
+    protected PostUpdateResponse() {
     }
 
+    @Builder
     public PostUpdateResponse(Long id, String title, String content) {
         this.id = id;
         this.title = title;
