@@ -7,9 +7,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.*;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -43,24 +42,20 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("findAllPosts 메서드는 모든 Post를 반환한다.")
-    void findAllPostsTest() {
+    @DisplayName("findPosts 메서드는 0번째부터 100개의 post를 시간 순으로 반환한다.")
+    void findPostsTest() {
         //given
-        PostNewRequest post1 = createPost();
-        PostNewRequest post2 = createPost();
-        PostNewRequest post3 = createPost();
-        PostNewRequest post4 = createPost();
+        for (int i=0; i < 100; i++) {
+            postService.savePost(createPost());
+        }
 
-        postService.savePost(post1);
-        postService.savePost(post2);
-        postService.savePost(post3);
-        postService.savePost(post4);
+        Pageable pageable = PageRequest.of(0, 100);
 
         //when
-        List<PostResponse> result = postService.findAllPosts();
+        Slice<PostResponse> result = postService.findPosts(pageable);
 
         //then
-        assertThat(result.size()).isEqualTo(4);
+        assertThat(result.getSize()).isEqualTo(100);
     }
 
     @Test

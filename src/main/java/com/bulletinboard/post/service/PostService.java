@@ -6,11 +6,10 @@ import com.bulletinboard.post.dto.PostResponse;
 import com.bulletinboard.post.dto.PostUpdateRequest;
 import com.bulletinboard.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 
 @Service
@@ -28,16 +27,9 @@ public class PostService {
         return savedPost.getId();
     }
 
-    public List<PostResponse> findAllPosts() {
-        List<Post> posts = postRepository.findAll();
-
-        if (posts.isEmpty()) {
-            throw new IllegalStateException("게시글이 없습니다.");
-        }
-
-        return posts.stream()
-                .map(PostAssembler::toDto)
-                .collect(Collectors.toList());
+    public Slice<PostResponse> findPosts(Pageable pageable) {
+        return postRepository.findAll(pageable)
+                .map(PostAssembler::toDto);
     }
 
     public PostResponse findPostById(Long id) {

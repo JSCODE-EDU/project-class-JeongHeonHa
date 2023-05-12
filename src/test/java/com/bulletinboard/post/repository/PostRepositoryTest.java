@@ -5,9 +5,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
@@ -53,24 +54,22 @@ class PostRepositoryTest {
     }
 
     @Test
-    @DisplayName("findAll 메서드는 모든 Post를 반환한다.")
+    @DisplayName("findAll 메서드는 0번째 페이지 부터 2개의 post를 반환한다.")
     void findAllTest() {
         //given
-        Post post1 = createPost();
-        Post post2 = createPost();
-        Post post3 = createPost();
-        Post post4 = createPost();
+        for (int i=0; i < 2; i++) {
+            postRepository.save(createPost());
+        }
+
+        int page = 0;
+        int size = 2;
+        PageRequest pageable = PageRequest.of(page, size);
 
         //when
-        postRepository.save(post1);
-        postRepository.save(post2);
-        postRepository.save(post3);
-        postRepository.save(post4);
+        Slice<Post> posts = postRepository.findAll(pageable);
 
         //then
-        List<Post> posts = postRepository.findAll();
-
-        assertThat(posts.size()).isEqualTo(4);
+        assertThat(posts.getSize()).isEqualTo(2);
     }
 
     @Test

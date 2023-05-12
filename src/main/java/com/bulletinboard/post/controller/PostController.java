@@ -5,11 +5,14 @@ import com.bulletinboard.post.dto.PostResponse;
 import com.bulletinboard.post.dto.PostUpdateRequest;
 import com.bulletinboard.post.service.PostService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import static org.springframework.data.domain.Sort.Direction.DESC;
 
 @RestController
 @RequiredArgsConstructor
@@ -27,8 +30,14 @@ public class PostController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PostResponse>> findAllPosts() {
-        List<PostResponse> postResponses = postService.findAllPosts();
+    public ResponseEntity<Slice<PostResponse>> findPosts(
+            @PageableDefault(page = 0, size = 100, sort = "createdDate", direction = DESC) Pageable pageable) {
+
+        if (pageable.getPageSize() > 100) {
+            throw new IllegalArgumentException("페이지는 100개 이상 조회할 수 없습니다");
+        }
+
+        Slice<PostResponse> postResponses = postService.findPosts(pageable);
 
         return new ResponseEntity<>(postResponses, HttpStatus.OK);
     }
