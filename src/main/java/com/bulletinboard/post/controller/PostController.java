@@ -10,6 +10,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import static org.springframework.data.domain.Sort.Direction.DESC;
@@ -31,14 +32,19 @@ public class PostController {
 
     @GetMapping
     public ResponseEntity<Slice<PostResponse>> findPosts(
-            @PageableDefault(page = 0, size = 100, sort = "createdDate", direction = DESC) Pageable pageable) {
+            @RequestParam(required = false, defaultValue = "") String keyword,
+            @PageableDefault(size = 100, sort = "createdDate", direction = DESC) Pageable pageable) {
 
         if (pageable.getPageSize() > 100) {
             throw new IllegalArgumentException("페이지는 100개 이상 조회할 수 없습니다");
         }
 
-        Slice<PostResponse> postResponses = postService.findPosts(pageable);
+        if (StringUtils.hasText(keyword)) {
+            Slice<PostResponse> postResponses = postService.findPostsByKeyword(keyword, pageable);
+            return new ResponseEntity<>(postResponses, HttpStatus.OK);
+        }
 
+        Slice<PostResponse> postResponses = postService.findPosts(pageable);
         return new ResponseEntity<>(postResponses, HttpStatus.OK);
     }
 

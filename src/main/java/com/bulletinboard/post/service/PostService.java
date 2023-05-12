@@ -39,6 +39,12 @@ public class PostService {
         return PostAssembler.toDto(post);
     }
 
+    public Slice<PostResponse> findPostsByKeyword(String keyword, Pageable pageable) {
+        Slice<Post> posts = postRepository.findByTitleTitleContaining(keyword, pageable);
+
+        return posts.map(PostAssembler::toDto);
+    }
+
     @Transactional
     public void updatePost(Long id, PostUpdateRequest postUpdateRequest) {
         Post findPost = postRepository.findById(id)
