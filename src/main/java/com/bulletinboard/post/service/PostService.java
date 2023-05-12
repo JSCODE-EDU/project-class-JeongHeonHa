@@ -4,7 +4,6 @@ import com.bulletinboard.post.domain.Post;
 import com.bulletinboard.post.dto.PostNewRequest;
 import com.bulletinboard.post.dto.PostResponse;
 import com.bulletinboard.post.dto.PostUpdateRequest;
-import com.bulletinboard.post.dto.PostUpdateResponse;
 import com.bulletinboard.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -46,13 +45,6 @@ public class PostService {
                 .orElseThrow(() -> new IllegalStateException("해당 게시글이 없습니다."));
 
         return PostAssembler.toDto(post);
-    }
-
-    public PostUpdateResponse findUpdatedPostById(Long id) {
-        Post updatedPost = postRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("해당 게시글이 없습니다."));
-
-        return PostAssembler.toUpdateDto(updatedPost);
     }
 
     @Transactional

@@ -3,7 +3,6 @@ package com.bulletinboard.post.service;
 import com.bulletinboard.post.dto.PostNewRequest;
 import com.bulletinboard.post.dto.PostResponse;
 import com.bulletinboard.post.dto.PostUpdateRequest;
-import com.bulletinboard.post.dto.PostUpdateResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,10 +86,10 @@ class PostServiceTest {
 
         //when
         postService.updatePost(savedId, updatedPost);
-        PostUpdateResponse postUpdateResponse = postService.findUpdatedPostById(savedId);
+        PostResponse postResponse = postService.findPostById(savedId);
 
         //then
-        assertThat(postUpdateResponse.getId()).isEqualTo(savedId);
+        assertThat(postResponse.getId()).isEqualTo(savedId);
     }
 
     @Test
@@ -102,11 +101,11 @@ class PostServiceTest {
 
         //when
         postService.updatePost(savedId, updatedPost);
-        PostUpdateResponse postUpdateResponse = postService.findUpdatedPostById(savedId);
+        PostResponse postResponse = postService.findPostById(savedId);
 
         //then
-        assertThat(postUpdateResponse.getTitle()).isEqualTo("updatedTitle");
-        assertThat(postUpdateResponse.getContent()).isEqualTo("updatedContent");
+        assertThat(postResponse.getTitle()).isEqualTo("updatedTitle");
+        assertThat(postResponse.getContent()).isEqualTo("updatedContent");
     }
 
     @Test

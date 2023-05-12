@@ -3,7 +3,6 @@ package com.bulletinboard.post.controller;
 import com.bulletinboard.post.dto.PostNewRequest;
 import com.bulletinboard.post.dto.PostResponse;
 import com.bulletinboard.post.dto.PostUpdateRequest;
-import com.bulletinboard.post.dto.PostUpdateResponse;
 import com.bulletinboard.post.service.PostService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -81,9 +80,9 @@ class PostControllerTest {
     void updatePost() throws Exception {
         //given
         PostUpdateRequest request = new PostUpdateRequest("title1", "content1");
-        PostUpdateResponse response = new PostUpdateResponse(1L, "title1", "content1", LocalDateTime.now(), LocalDateTime.now());
+        PostResponse response = new PostResponse(1L, "title1", "content1", LocalDateTime.now(), LocalDateTime.now());
 
-        given(postService.findUpdatedPostById(1L)).willReturn(response);
+        given(postService.findPostById(1L)).willReturn(response);
 
         //when //then
         mockMvc.perform(put("/posts/{id}", 1L)

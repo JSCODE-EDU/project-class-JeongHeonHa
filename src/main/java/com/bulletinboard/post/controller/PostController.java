@@ -3,7 +3,6 @@ package com.bulletinboard.post.controller;
 import com.bulletinboard.post.dto.PostNewRequest;
 import com.bulletinboard.post.dto.PostResponse;
 import com.bulletinboard.post.dto.PostUpdateRequest;
-import com.bulletinboard.post.dto.PostUpdateResponse;
 import com.bulletinboard.post.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -42,11 +41,11 @@ public class PostController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PostUpdateResponse> updatePostById(@PathVariable Long id, @RequestBody PostUpdateRequest postUpdateRequest) {
+    public ResponseEntity<PostResponse> updatePostById(@PathVariable Long id, @RequestBody PostUpdateRequest postUpdateRequest) {
         postService.updatePost(id, postUpdateRequest);
-        PostUpdateResponse postUpdateResponse = postService.findUpdatedPostById(id);
+        PostResponse postResponse = postService.findPostById(id);
 
-        return new ResponseEntity<>(postUpdateResponse, HttpStatus.OK);
+        return new ResponseEntity<>(postResponse, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
