@@ -3,6 +3,7 @@ package com.bulletinboard.post.controller;
 import com.bulletinboard.post.dto.PostNewRequest;
 import com.bulletinboard.post.dto.PostResponse;
 import com.bulletinboard.post.dto.PostUpdateRequest;
+import com.bulletinboard.post.exception.InvalidPostException;
 import com.bulletinboard.post.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -12,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
 
 import static org.springframework.data.domain.Sort.Direction.DESC;
 
@@ -23,7 +26,7 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping
-    public ResponseEntity<PostResponse> savePost(@RequestBody PostNewRequest postNewRequest) {
+    public ResponseEntity<PostResponse> savePost(@Valid @RequestBody PostNewRequest postNewRequest) {
         Long savedPostId = postService.savePost(postNewRequest);
         PostResponse postResponse = postService.findPostById(savedPostId);
 
@@ -32,19 +35,28 @@ public class PostController {
 
     @GetMapping
     public ResponseEntity<Slice<PostResponse>> findPosts(
-            @RequestParam(required = false, defaultValue = "") String keyword,
             @PageableDefault(size = 100, sort = "createdDate", direction = DESC) Pageable pageable) {
 
         if (pageable.getPageSize() > 100) {
-            throw new IllegalArgumentException("페이지는 100개 이상 조회할 수 없습니다");
-        }
-
-        if (StringUtils.hasText(keyword)) {
-            Slice<PostResponse> postResponses = postService.findPostsByKeyword(keyword, pageable);
-            return new ResponseEntity<>(postResponses, HttpStatus.OK);
+            throw new InvalidPostException();
         }
 
         Slice<PostResponse> postResponses = postService.findPosts(pageable);
+        return new ResponseEntity<>(postResponses, HttpStatus.OK);
+    }
+
+    @GetMapping("/word")
+    public ResponseEntity<Slice<PostResponse>> findPostsByKeyword(
+            @RequestParam String keyword,
+            @PageableDefault(size = 100, sort = "createdDate", direction = DESC) Pageable pageable) {
+
+        if (pageable.getPageSize() > 100) {
+            throw new InvalidPostException();
+        }
+
+        if (!StringUtils.hasText(keyword)) throw new InvalidPostException("키워드는 필수 입니다.");
+
+        Slice<PostResponse> postResponses = postService.findPostsByKeyword(keyword, pageable);
         return new ResponseEntity<>(postResponses, HttpStatus.OK);
     }
 
