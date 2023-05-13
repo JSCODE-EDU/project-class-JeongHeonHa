@@ -5,16 +5,16 @@ import org.springframework.http.HttpStatus;
 
 public class ApiUtils {
 
-    public static<T> ApiResponse<T> success(T response) {
-        return new ApiResponse<>(true, response, null);
+    public static<T> ApiResponse<T> success(T response, HttpStatus status) {
+        return new ApiResponse<>(true, status, response, null);
     }
 
     public static ApiResponse<?> error(Throwable throwable, HttpStatus status) {
-        return new ApiResponse<>(false, null, new ApiError(throwable, status));
+        return new ApiResponse<>(false, status, null, new ApiError(throwable, status));
     }
 
     public static ApiResponse<?> error(String message, HttpStatus status) {
-        return new ApiResponse<>(false, null, new ApiError(message, status));
+        return new ApiResponse<>(false, status, null, new ApiError(message, status));
     }
 
     @Getter
@@ -35,25 +35,19 @@ public class ApiUtils {
     @Getter
     public static class ApiResponse<T> {
         private final boolean success;
+        private final HttpStatus status;
         private final T response;
         private final ApiError error;
 
-        private ApiResponse(boolean success, T response, ApiError error) {
+        private ApiResponse(boolean success, HttpStatus status, T response, ApiError error) {
             this.success = success;
+            this.status = status;
             this.response = response;
             this.error = error;
         }
 
         public boolean isSuccess() {
             return success;
-        }
-
-        public ApiError getError() {
-            return error;
-        }
-
-        public T getResponse() {
-            return response;
         }
     }
 }
