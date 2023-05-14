@@ -27,7 +27,7 @@ class PostRepositoryTest {
     }
 
     @Test
-    @DisplayName("save 메서드는 Post 객체를 저장한다.")
+    @DisplayName("post를 저장한다.")
     void saveTest() {
         //given
         Post post = createPost();
@@ -40,7 +40,7 @@ class PostRepositoryTest {
     }
 
     @Test
-    @DisplayName("findById 메서드는 id를 제공하면 id에 맞는 Post를 반환한다.")
+    @DisplayName("post를 반환한다.")
     void findByIdTest() {
         //given
         Post post = createPost();
@@ -54,7 +54,7 @@ class PostRepositoryTest {
     }
 
     @Test
-    @DisplayName("findAll 메서드는 0번째 페이지 부터 2개의 post를 반환한다.")
+    @DisplayName("0번째 페이지 부터 2개의 post를 반환한다.")
     void findAllTest() {
         //given
         for (int i=0; i < 2; i++) {
@@ -73,13 +73,13 @@ class PostRepositoryTest {
     }
 
     @Test
-    @DisplayName("deleteById 메서드는 id에 맞는 Post를 제거한다.")
+    @DisplayName("post를 제거한다.")
     void deleteByIdTest() {
         //given
         Post post = createPost();
+        postRepository.save(post);
 
         //when
-        postRepository.save(post);
         postRepository.deleteById(post.getId());
         Optional<Post> result = postRepository.findById(post.getId());
 
@@ -87,4 +87,22 @@ class PostRepositoryTest {
         assertThat(result.isEmpty()).isTrue();
     }
 
+    @Test
+    @DisplayName("제목에 keyword를 포함한 모든 post를 반환한다.")
+    void findByTitleContaining() {
+        //given
+        for (int i=1; i < 11; i++) {
+            Post post = Post.PostBuilder.aPost()
+                    .title("" + i)
+                    .build();
+
+            postRepository.save(post);
+        }
+
+        //when
+        Slice<Post> result = postRepository.findByTitleTitleContaining("1", null);
+
+        //then
+        assertThat(result.getSize()).isEqualTo(2);
+    }
 }

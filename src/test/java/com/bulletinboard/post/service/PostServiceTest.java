@@ -3,6 +3,7 @@ package com.bulletinboard.post.service;
 import com.bulletinboard.post.dto.PostNewRequest;
 import com.bulletinboard.post.dto.PostResponse;
 import com.bulletinboard.post.dto.PostUpdateRequest;
+import com.bulletinboard.post.exception.PostNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +12,6 @@ import org.springframework.data.domain.*;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @Transactional
@@ -28,7 +28,7 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("savePost 메서드는 Post를 저장한다.")
+    @DisplayName("post를 저장한다.")
     void savePostTest() {
         //given
         PostNewRequest post = createPost();
@@ -42,7 +42,7 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("findPosts 메서드는 0번째부터 100개의 post를 시간 순으로 반환한다.")
+    @DisplayName("0번째부터 100개의 post를 시간 순으로 반환한다.")
     void findPostsTest() {
         //given
         for (int i=0; i < 100; i++) {
@@ -59,7 +59,7 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("findById 메서드는 id를 제공하면 id에 맞는 Post를 반환한다.")
+    @DisplayName("post를 조회한다.")
     void findByIdTest() {
         //given
         PostNewRequest post = createPost();
@@ -73,22 +73,18 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("findUpdatedPostById 메서드는 id를 제공하면 id에 맞는 PostUpdateResponse를 반환한다.")
-    void findUpdatedPostByIdTest() {
+    @DisplayName("post가 없으면 PostNotFoundException 발생")
+    void findById_Ex() {
         //given
-        Long savedId = postService.savePost(createPost());
-        PostUpdateRequest updatedPost = createUpdatedPost();
+        Long id = 1L;
 
-        //when
-        postService.updatePost(savedId, updatedPost);
-        PostResponse postResponse = postService.findPostById(savedId);
-
-        //then
-        assertThat(postResponse.getId()).isEqualTo(savedId);
+        //when //then
+        assertThatThrownBy(() -> postService.findPostById(id))
+                .isInstanceOf(PostNotFoundException.class);
     }
 
     @Test
-    @DisplayName("updatePost 메서드는 id와 변경된 Post를 제공하면 Post를 변경한다.")
+    @DisplayName("post를 변경한다.")
     void updatePostTest() {
         //given
         Long savedId = postService.savePost(createPost());
@@ -104,7 +100,18 @@ class PostServiceTest {
     }
 
     @Test
-    @DisplayName("deletePost 메서드는 id를 제공하면 id에 맞는 Post를 제거한다.")
+    @DisplayName("변경할 post가 없으면 PostNotFoundException 발생")
+    void updatePost_Ex() {
+        //given
+        Long id = 1L;
+        PostUpdateRequest updatedPost = createUpdatedPost();
+        //when //then
+        assertThatThrownBy(() -> postService.updatePost(id, updatedPost))
+                .isInstanceOf(PostNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("post를 제거한다.")
     void deletePostByIdTest() {
         //given
         PostNewRequest post = createPost();
@@ -114,7 +121,36 @@ class PostServiceTest {
         postService.deletePostById(savedId);
 
         //then
-        assertThrows(IllegalStateException.class,
-                () -> postService.findPostById(savedId));
+        assertThatThrownBy(() -> postService.findPostById(savedId))
+                .isInstanceOf(PostNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("제거할 post가 없으면 PostNotFoundException 발생")
+    void deletePostById_Ex() {
+        //given
+        Long id = 1L;
+
+        //when //then
+        assertThatThrownBy(() -> postService.deletePostById(id))
+                .isInstanceOf(PostNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("제목에 keyword를 포함한 모든 post를 반환한다.")
+    void findPostsByKeyword() {
+        //given
+        for (int i=0; i < 11; i++) {
+            PostNewRequest request = PostNewRequest.builder()
+                    .title("" + i)
+                    .build();
+            postService.savePost(request);
+        }
+
+        //when
+        Slice<PostResponse> result = postService.findPostsByKeyword("1", null);
+
+        //then
+        assertThat(result.getSize()).isEqualTo(2);
     }
 }
