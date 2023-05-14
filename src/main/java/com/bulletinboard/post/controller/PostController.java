@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,11 +37,11 @@ public class PostController {
             @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR")
     })
     @PostMapping
-    public ApiUtils.ApiResponse<PostResponse> savePost(@Valid @RequestBody PostNewRequest postNewRequest) {
+    public ResponseEntity<ApiResult<PostResponse>> savePost(@Valid @RequestBody PostNewRequest postNewRequest) {
         Long savedPostId = postService.savePost(postNewRequest);
         PostResponse postResponse = postService.findPostById(savedPostId);
 
-        return success(postResponse, HttpStatus.CREATED);
+        return ApiUtils.success(postResponse, HttpStatus.CREATED);
     }
 
     @Operation(summary = "게시글 모두 조회", description = "게시글을 모두 조회합니다.")
@@ -51,7 +52,7 @@ public class PostController {
             @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR")
     })
     @GetMapping
-    public ApiUtils.ApiResponse<Slice<PostResponse>> findPosts(
+    public ResponseEntity<ApiResult<Slice<PostResponse>>> findPosts(
             @PageableDefault(size = 100, sort = "createdDate", direction = DESC) Pageable pageable) {
 
         if (pageable.getPageSize() > 100) {
@@ -70,7 +71,7 @@ public class PostController {
             @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR")
     })
     @GetMapping("/word")
-    public ApiUtils.ApiResponse<Slice<PostResponse>> findPostsByKeyword(
+    public ResponseEntity<ApiResult<Slice<PostResponse>>> findPostsByKeyword(
             @RequestParam String keyword,
             @PageableDefault(size = 100, sort = "createdDate", direction = DESC) Pageable pageable) {
 
@@ -91,7 +92,7 @@ public class PostController {
             @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR")
     })
     @GetMapping("/{id}")
-    public ApiUtils.ApiResponse<PostResponse> findPostById(@PathVariable Long id) {
+    public ResponseEntity<ApiResult<PostResponse>> findPostById(@PathVariable Long id) {
         PostResponse postResponse = postService.findPostById(id);
 
         return success(postResponse, HttpStatus.OK);
@@ -105,7 +106,7 @@ public class PostController {
             @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR")
     })
     @PutMapping("/{id}")
-    public ApiUtils.ApiResponse<PostResponse> updatePostById(@PathVariable Long id, @RequestBody PostUpdateRequest postUpdateRequest) {
+    public ResponseEntity<ApiResult<PostResponse>> updatePostById(@PathVariable Long id, @RequestBody PostUpdateRequest postUpdateRequest) {
         postService.updatePost(id, postUpdateRequest);
         PostResponse postResponse = postService.findPostById(id);
 
@@ -119,7 +120,7 @@ public class PostController {
             @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR")
     })
     @DeleteMapping("/{id}")
-    public ApiUtils.ApiResponse<Object> deletePost(@PathVariable Long id) {
+    public ResponseEntity<ApiResult<Object>> deletePost(@PathVariable Long id) {
         postService.deletePostById(id);
 
         return success(null, HttpStatus.NO_CONTENT);

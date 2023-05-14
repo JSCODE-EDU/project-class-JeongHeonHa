@@ -16,23 +16,12 @@ import static com.bulletinboard.utils.ApiUtils.error;
 @RestControllerAdvice
 public class ControllerAdvice {
 
-    private ResponseEntity<ApiUtils.ApiResponse<?>> newResponse(Throwable throwable, HttpStatus status) {
-        return newResponse(throwable.getMessage(), status);
-    }
-
-    private ResponseEntity<ApiUtils.ApiResponse<?>> newResponse(String message, HttpStatus status) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-Type", "application/json");
-
-        return new ResponseEntity<>(error(message, status), headers, status);
-    }
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiUtils.ApiResponse<?>> handleMethodArgumentNotValidException(BindingResult bindingResult) {
+    public ResponseEntity<ApiUtils.ApiResult<?>> handleMethodArgumentNotValidException(BindingResult bindingResult) {
         String defaultMessage = bindingResult.getFieldError()
                 .getDefaultMessage();
         log.info("MethodArgumentNotValidException = {}", defaultMessage);
 
-        return newResponse(defaultMessage, HttpStatus.BAD_REQUEST);
+        return error(defaultMessage, HttpStatus.BAD_REQUEST);
     }
 }

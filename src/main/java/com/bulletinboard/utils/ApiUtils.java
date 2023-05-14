@@ -2,46 +2,47 @@ package com.bulletinboard.utils;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 public class ApiUtils {
 
-    public static<T> ApiResponse<T> success(T response, HttpStatus status) {
-        return new ApiResponse<>(true, status, response, null);
+    public static<T> ResponseEntity<ApiResult<T>> success(T response, HttpStatus status) {
+        return new ResponseEntity<>(new ApiResult<>(true, status, response, null), status);
     }
 
-    public static ApiResponse<?> error(Throwable throwable, HttpStatus status) {
-        return new ApiResponse<>(false, status, null, new ApiError(throwable, status));
+    public static ResponseEntity<ApiResult<?>> error(Throwable throwable, HttpStatus status) {
+        return new ResponseEntity<>(new ApiResult<>(false, status, null, new ApiError(throwable)), status);
     }
 
-    public static ApiResponse<?> error(String message, HttpStatus status) {
-        return new ApiResponse<>(false, status, null, new ApiError(message, status));
+    public static ResponseEntity<ApiResult<?>> error(String message, HttpStatus status) {
+        return new ResponseEntity<>(new ApiResult<>(false, status, null, new ApiError(message)), status);
     }
 
     @Getter
     public static class ApiError {
         private final String message;
-        private final int status;
 
-        ApiError(Throwable throwable, HttpStatus status) {
-            this(throwable.getMessage(), status);
+        ApiError(Throwable throwable) {
+            this(throwable.getMessage());
         }
 
-        ApiError(String message, HttpStatus status) {
+        ApiError(String message) {
             this.message = message;
-            this.status = status.value();
         }
     }
 
     @Getter
-    public static class ApiResponse<T> {
+    public static class ApiResult<T> {
         private final boolean success;
         private final HttpStatus status;
+        private final int code;
         private final T response;
         private final ApiError error;
 
-        private ApiResponse(boolean success, HttpStatus status, T response, ApiError error) {
+        private ApiResult(boolean success, HttpStatus status, T response, ApiError error) {
             this.success = success;
             this.status = status;
+            this.code = status.value();
             this.response = response;
             this.error = error;
         }
