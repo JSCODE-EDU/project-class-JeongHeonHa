@@ -1,5 +1,6 @@
 package com.bulletinboard.post.domain.vo;
 
+import com.bulletinboard.post.exception.InvalidTitleException;
 import lombok.Getter;
 
 import javax.persistence.Column;
@@ -9,6 +10,8 @@ import java.util.Objects;
 @Getter
 @Embeddable
 public class Title {
+
+    private static final int LIMIT_LENGTH = 15;
 
     @Column(name = "title")
     private String title;
@@ -21,7 +24,14 @@ public class Title {
     }
 
     public static Title from(String title) {
+        validate(title);
         return new Title(title);
+    }
+
+    private static void validate(String title) {
+        if (title.length() > LIMIT_LENGTH) {
+            throw new InvalidTitleException();
+        }
     }
 
     @Override
