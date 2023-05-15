@@ -1,6 +1,8 @@
 package com.bulletinboard.post.exception;
 
-public class InvalidPostException extends RuntimeException {
+import com.bulletinboard.advice.BadRequestException;
+
+public class InvalidPostException extends BadRequestException {
 
     private static final String MESSAGE = "게시물은 최대 100개만 가능합니다.";
 
