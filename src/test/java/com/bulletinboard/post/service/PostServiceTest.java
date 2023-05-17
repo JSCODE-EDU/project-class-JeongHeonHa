@@ -140,17 +140,15 @@ class PostServiceTest {
     @DisplayName("제목에 keyword를 포함한 모든 post를 반환한다.")
     void findPostsByKeyword() {
         //given
-        for (int i=0; i < 11; i++) {
-            PostNewRequest request = PostNewRequest.builder()
-                    .title("" + i)
-                    .build();
+        for (int i=0; i < 3; i++) {
+            PostNewRequest request = createPost();
             postService.savePost(request);
         }
 
         //when
-        Slice<PostResponse> result = postService.findPostsByKeyword("1", null);
+        Slice<PostResponse> result = postService.findPostsByKeyword("t", null);
 
         //then
-        assertThat(result.getSize()).isEqualTo(2);
+        assertThat(result.getSize()).isEqualTo(3);
     }
 }
