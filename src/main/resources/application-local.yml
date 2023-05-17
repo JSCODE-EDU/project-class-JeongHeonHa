@@ -1,6 +1,10 @@
 spring:
+  config:
+    activate:
+      on-profile: local
+
   datasource:
-    url: jdbc:h2:mem:test
+    url: jdbc:h2:mem:localDB
     username: sa
     password:
     driver-class-name: org.h2.Driver
@@ -8,14 +12,17 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create
+    show-sql: true
     properties:
       hibernate:
-        show_sql: true
         format_sql: true
 
-  sql:
-    init:
-      mode: never
+    defer-datasource-initialization: true
+
+  h2:
+    console:
+      enabled: true
+      path: /console
 
   mvc:
     pathmatch:
@@ -23,4 +30,3 @@ spring:
 
 logging.level:
   org.hibernate.SQL: debug
-  org.hibernate.type: trace
