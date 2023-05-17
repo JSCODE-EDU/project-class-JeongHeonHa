@@ -1,5 +1,6 @@
 package com.bulletinboard.post.domain.vo;
 
+import com.bulletinboard.post.exception.InvalidContentException;
 import lombok.Getter;
 
 import javax.persistence.Column;
@@ -9,6 +10,8 @@ import java.util.Objects;
 @Getter
 @Embeddable
 public class Content {
+
+    private static final int LIMIT_LENGTH = 1000;
 
     @Column(name = "content")
     private String content;
@@ -21,7 +24,14 @@ public class Content {
     }
 
     public static Content from(String content) {
+        validate(content);
         return new Content(content);
+    }
+
+    private static void validate(String content) {
+        if (content.length() > LIMIT_LENGTH) {
+            throw new InvalidContentException();
+        }
     }
 
     @Override
