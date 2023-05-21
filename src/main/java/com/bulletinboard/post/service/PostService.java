@@ -4,6 +4,7 @@ import com.bulletinboard.post.domain.Post;
 import com.bulletinboard.post.dto.PostNewRequest;
 import com.bulletinboard.post.dto.PostResponse;
 import com.bulletinboard.post.dto.PostUpdateRequest;
+import com.bulletinboard.post.exception.PostNotFoundException;
 import com.bulletinboard.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -34,7 +35,7 @@ public class PostService {
 
     public PostResponse findPostById(Long id) {
         Post post = postRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("해당 게시글이 없습니다."));
+                .orElseThrow(PostNotFoundException::new);
 
         return PostAssembler.toDto(post);
     }
@@ -48,7 +49,7 @@ public class PostService {
     @Transactional
     public void updatePost(Long id, PostUpdateRequest postUpdateRequest) {
         Post findPost = postRepository.findById(id)
-                .orElseThrow(() -> new IllegalStateException("해당 게시글이 없습니다."));
+                .orElseThrow(PostNotFoundException::new);
 
         findPost.updateTitle(postUpdateRequest.getTitle());
         findPost.updateContent(postUpdateRequest.getContent());
@@ -56,6 +57,9 @@ public class PostService {
 
     @Transactional
     public void deletePostById(Long id) {
+        postRepository.findById(id)
+                        .orElseThrow(PostNotFoundException::new);
+
         postRepository.deleteById(id);
     }
 }
