@@ -20,15 +20,15 @@ public class Title {
     }
 
     private Title(String title) {
+        validate(title);
         this.title = title;
     }
 
     public static Title from(String title) {
-        validate(title);
         return new Title(title);
     }
 
-    private static void validate(String title) {
+    private void validate(String title) {
         if (title.length() > LIMIT_LENGTH) {
             throw new InvalidTitleException();
         }
