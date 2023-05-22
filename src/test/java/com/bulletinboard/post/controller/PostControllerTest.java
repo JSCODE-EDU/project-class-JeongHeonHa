@@ -47,8 +47,8 @@ class PostControllerTest {
 
         PostResponse response = createPostResponse(id, now());
 
-        when(postService.savePost(any(PostNewRequest.class))).thenReturn(id);
-        when(postService.findPostById(id)).thenReturn(response);
+        given(postService.savePost(any(PostNewRequest.class))).willReturn(id);
+        given(postService.findPostById(id)).willReturn(response);
 
         //when //then
         mockMvc.perform(post("/posts")
@@ -68,6 +68,7 @@ class PostControllerTest {
                 .title("")
                 .content("content")
                 .build();
+
         //when //then
         mockMvc.perform(post("/posts")
                 .contentType(APPLICATION_JSON)
@@ -83,6 +84,7 @@ class PostControllerTest {
                 .title("title")
                 .content("")
                 .build();
+
         //when //then
         mockMvc.perform(post("/posts")
                         .contentType(APPLICATION_JSON)
@@ -96,12 +98,11 @@ class PostControllerTest {
         //given
         Slice<PostResponse> slice = new SliceImpl<>(List.of(createPostResponse(1L, now()), createPostResponse(2L, now())));
 
-        when(postService.findPosts(any(Pageable.class))).thenReturn(slice);
+        given(postService.findPosts(any(Pageable.class))).willReturn(slice);
 
         //when //then
         mockMvc.perform(get("/posts")
                         .accept(APPLICATION_JSON))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].id").value(1L))
                 .andExpect(jsonPath("$.content[1].id").value(2L));
@@ -144,7 +145,7 @@ class PostControllerTest {
     void findPostByKeyword() throws Exception {
         //given
         SliceImpl<PostResponse> slice = new SliceImpl<>(List.of(createPostResponse(1L, now()), createPostResponse(2L, now())));
-        when(postService.findPostsByKeyword(anyString(), any(Pageable.class))).thenReturn(slice);
+        given(postService.findPostsByKeyword(anyString(), any(Pageable.class))).willReturn(slice);
 
         //when //then
         mockMvc.perform(get("/posts/word")
@@ -159,7 +160,7 @@ class PostControllerTest {
     void findPostByKeyword_NOTBLANK_EX() throws Exception {
         //given
         SliceImpl<PostResponse> slice = new SliceImpl<>(List.of(createPostResponse(1L, now()), createPostResponse(2L, now())));
-        when(postService.findPostsByKeyword(anyString(), any(Pageable.class))).thenReturn(slice);
+        given(postService.findPostsByKeyword(anyString(), any(Pageable.class))).willReturn(slice);
 
         //when //then
         mockMvc.perform(get("/posts/word")
@@ -204,12 +205,13 @@ class PostControllerTest {
 
     }
 
-    private static PostResponse createPostResponse(long id, LocalDateTime now) {
+    private PostResponse createPostResponse(long id, LocalDateTime now) {
         return PostResponse.builder()
                 .id(id)
                 .title("title")
                 .content("content")
                 .createdDate(now)
+                .updatedDate(now)
                 .build();
     }
 }
