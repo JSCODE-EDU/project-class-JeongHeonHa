@@ -130,7 +130,13 @@ class PostControllerTest {
     @DisplayName("id로 게시글을 찾는다.")
     void findPostById() throws Exception {
         //given
-        PostResponse post = new PostResponse(1L, "title", "content", now(), now());
+        PostResponse post = PostResponse.builder()
+                .id(1L)
+                .title("title")
+                .content("content")
+                .createdDate(now())
+                .updatedDate(now())
+                .build();
 
         given(postService.findPostById(1L)).willReturn(post);
 
@@ -174,8 +180,18 @@ class PostControllerTest {
     @DisplayName("게시글을 변경한다.")
     void updatePost() throws Exception {
         //given
-        PostUpdateRequest request = new PostUpdateRequest("title1", "content1");
-        PostResponse response = new PostResponse(1L, "title1", "content1", now(), now());
+        PostUpdateRequest request = PostUpdateRequest.builder()
+                .title("updatedTitle")
+                .content("updatedContent")
+                .build();
+
+        PostResponse response = PostResponse.builder()
+                .id(1L)
+                .title("updatedTitle")
+                .content("updatedContent")
+                .createdDate(now())
+                .updatedDate(now())
+                .build();
 
         given(postService.findPostById(1L)).willReturn(response);
 
@@ -187,8 +203,8 @@ class PostControllerTest {
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.title").value("title1"))
-                .andExpect(jsonPath("$.content").value("content1"));
+                .andExpect(jsonPath("$.title").value("updatedTitle"))
+                .andExpect(jsonPath("$.content").value("updatedContent"));
     }
 
     @Test

@@ -20,11 +20,17 @@ class PostServiceTest {
     @Autowired PostService postService;
 
     private PostNewRequest createPost() {
-        return new PostNewRequest("title", "content");
+        return PostNewRequest.builder()
+                .title("title")
+                .content("content")
+                .build();
     }
 
     private PostUpdateRequest createUpdatedPost() {
-        return new PostUpdateRequest("updatedTitle", "updatedContent");
+        return PostUpdateRequest.builder()
+                .title("updatedTitle")
+                .content("updatedContent")
+                .build();
     }
 
     @Test

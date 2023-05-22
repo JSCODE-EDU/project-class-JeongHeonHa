@@ -2,11 +2,10 @@ package com.bulletinboard.post.dto;
 
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-@Getter @Setter
+@Getter
 public class PostResponse {
 
     private Long id;
@@ -15,11 +14,11 @@ public class PostResponse {
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
 
-    protected PostResponse() {
+    private PostResponse() {
     }
 
     @Builder
-    public PostResponse(Long id, String title, String content, LocalDateTime createdDate, LocalDateTime updatedDate) {
+    private PostResponse(Long id, String title, String content, LocalDateTime createdDate, LocalDateTime updatedDate) {
         this.id = id;
         this.title = title;
         this.content = content;
