@@ -1,42 +1,27 @@
 package com.bulletinboard.post.controller;
 
+import com.bulletinboard.ControllerTestSupport;
 import com.bulletinboard.post.dto.PostNewRequest;
 import com.bulletinboard.post.dto.PostResponse;
 import com.bulletinboard.post.dto.PostUpdateRequest;
-import com.bulletinboard.post.service.PostService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.*;
-import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static java.time.LocalDateTime.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = PostController.class)
-class PostControllerTest {
+class PostControllerTest extends ControllerTestSupport {
 
-    @Autowired private MockMvc mockMvc;
-
-    @Autowired private ObjectMapper objectMapper;
-
-    @MockBean private PostService postService;
-
-    @Test
     @DisplayName("게시글을 저장한다.")
+    @Test
     void savePost() throws Exception {
         //given
         Long id = 1L;
@@ -45,22 +30,24 @@ class PostControllerTest {
                 .content("content")
                 .build();
 
-        PostResponse response = createPostResponse(id, now());
+        PostResponse response = createPostResponse(id, createTime());
 
         given(postService.savePost(any(PostNewRequest.class))).willReturn(id);
         given(postService.findPostById(id)).willReturn(response);
 
         //when //then
         mockMvc.perform(post("/posts")
-                .contentType(APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.title").value("title"))
-                .andExpect(jsonPath("$.content").value("content"));
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpectAll(
+                        status().isCreated(),
+                        jsonPath("$.id").value(1L),
+                        jsonPath("$.title").value("title"),
+                        jsonPath("$.content").value("content")
+                );
     }
 
-    @DisplayName("제목이 비어있으면 예외를 발생시킨다.")
+    @DisplayName("제목이 비어있으면 400예외를 발생시킨다.")
     @Test
     void createPost_Title_Blank_Ex() throws Exception {
         //given
@@ -71,12 +58,12 @@ class PostControllerTest {
 
         //when //then
         mockMvc.perform(post("/posts")
-                .contentType(APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(jsonPath("$.statusCode").value(400));
     }
 
-    @DisplayName("제목이 비어있으면 예외를 발생시킨다.")
+    @DisplayName("내용이 비어있으면 400예외를 발생시킨다.")
     @Test
     void createPost_Content_Blank_Ex() throws Exception {
         //given
@@ -92,30 +79,37 @@ class PostControllerTest {
                 .andExpect(jsonPath("$.statusCode").value(400));
     }
 
-    @Test
     @DisplayName("모든 게시글을 찾는다.")
+    @Test
     void findPosts() throws Exception {
         //given
-        Slice<PostResponse> slice = new SliceImpl<>(List.of(createPostResponse(1L, now()), createPostResponse(2L, now())));
+        Slice<PostResponse> slice = new SliceImpl<>(List.of(
+                createPostResponse(1L, createTime()),
+                createPostResponse(2L, createTime()))
+        );
 
         given(postService.findPosts(any(Pageable.class))).willReturn(slice);
 
         //when //then
         mockMvc.perform(get("/posts")
                         .accept(APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].id").value(1L))
-                .andExpect(jsonPath("$.content[1].id").value(2L));
+                .andExpectAll(
+                        status().isOk(),
+                        jsonPath("$.content[0].id").value(1L),
+                        jsonPath("$.content[1].id").value(2L)
+                );
     }
 
-    @DisplayName("101개 이상의 게시글을 조회하면 예외가 발생한다.")
+    @DisplayName("101개 이상의 게시글을 조회하면 400예외가 발생한다.")
     @Test
     void findPosts_Ex() throws Exception {
+        //given
         int page = 0;
         int size = 101;
         String sort = "createdDate";
         Sort.Direction direction = Sort.Direction.DESC;
 
+        //when //then
         mockMvc.perform(get("/posts")
                         .param("page", String.valueOf(page))
                         .param("size", String.valueOf(size))
@@ -126,16 +120,16 @@ class PostControllerTest {
                 .andExpect(jsonPath("$.statusCode").value(400));
     }
 
+    @DisplayName("id로 하나의 게시글을 찾는다.")
     @Test
-    @DisplayName("id로 게시글을 찾는다.")
     void findPostById() throws Exception {
         //given
         PostResponse post = PostResponse.builder()
                 .id(1L)
                 .title("title")
                 .content("content")
-                .createdDate(now())
-                .updatedDate(now())
+                .createdDate(createTime())
+                .updatedDate(createTime())
                 .build();
 
         given(postService.findPostById(1L)).willReturn(post);
@@ -150,7 +144,11 @@ class PostControllerTest {
     @Test
     void findPostByKeyword() throws Exception {
         //given
-        SliceImpl<PostResponse> slice = new SliceImpl<>(List.of(createPostResponse(1L, now()), createPostResponse(2L, now())));
+        SliceImpl<PostResponse> slice = new SliceImpl<>(List.of(
+                createPostResponse(1L, createTime()),
+                createPostResponse(2L, createTime()))
+        );
+
         given(postService.findPostsByKeyword(anyString(), any(Pageable.class))).willReturn(slice);
 
         //when //then
@@ -161,11 +159,15 @@ class PostControllerTest {
                 .andExpect(jsonPath("$.content[0].id").value(1L));
     }
 
-    @DisplayName("키워드가 비어있으면 예외가 발생한다.")
+    @DisplayName("키워드가 비어있으면 400예외가 발생한다.")
     @Test
     void findPostByKeyword_NOTBLANK_EX() throws Exception {
         //given
-        SliceImpl<PostResponse> slice = new SliceImpl<>(List.of(createPostResponse(1L, now()), createPostResponse(2L, now())));
+        SliceImpl<PostResponse> slice = new SliceImpl<>(List.of(
+                createPostResponse(1L, createTime()),
+                createPostResponse(2L, createTime()))
+        );
+
         given(postService.findPostsByKeyword(anyString(), any(Pageable.class))).willReturn(slice);
 
         //when //then
@@ -176,8 +178,8 @@ class PostControllerTest {
                 .andExpect(jsonPath("$.statusCode").value(400));
     }
 
-    @Test
     @DisplayName("게시글을 변경한다.")
+    @Test
     void updatePost() throws Exception {
         //given
         PostUpdateRequest request = PostUpdateRequest.builder()
@@ -189,8 +191,8 @@ class PostControllerTest {
                 .id(1L)
                 .title("updatedTitle")
                 .content("updatedContent")
-                .createdDate(now())
-                .updatedDate(now())
+                .createdDate(createTime())
+                .updatedDate(createTime())
                 .build();
 
         given(postService.findPostById(1L)).willReturn(response);
@@ -199,16 +201,17 @@ class PostControllerTest {
         mockMvc.perform(put("/posts/{id}", 1L)
                         .content(objectMapper.writeValueAsString(request))
                         .contentType(APPLICATION_JSON)
-                        .accept(APPLICATION_JSON)
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.title").value("updatedTitle"))
-                .andExpect(jsonPath("$.content").value("updatedContent"));
+                        .accept(APPLICATION_JSON))
+                .andExpectAll(
+                        status().isOk(),
+                        jsonPath("$.id").value(1L),
+                        jsonPath("$.title").value("updatedTitle"),
+                        jsonPath("$.content").value("updatedContent")
+                );
     }
 
-    @Test
     @DisplayName("게시글을 삭제한다.")
+    @Test
     void deletePost() throws Exception {
         //given
         Long id = 1L;
@@ -229,5 +232,9 @@ class PostControllerTest {
                 .createdDate(now)
                 .updatedDate(now)
                 .build();
+    }
+
+    private LocalDateTime createTime() {
+        return LocalDateTime.of(2022, 02, 22, 22, 22, 22);
     }
 }

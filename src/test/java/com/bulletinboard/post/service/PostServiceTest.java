@@ -1,25 +1,32 @@
 package com.bulletinboard.post.service;
 
+import com.bulletinboard.IntegrationTestSupport;
 import com.bulletinboard.post.dto.PostNewRequest;
 import com.bulletinboard.post.dto.PostResponse;
 import com.bulletinboard.post.dto.PostUpdateRequest;
 import com.bulletinboard.post.exception.PostNotFoundException;
+import com.bulletinboard.post.repository.PostRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.*;
-import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.*;
 
-@SpringBootTest
-@Transactional
-class PostServiceTest {
+class PostServiceTest extends IntegrationTestSupport {
+
 
     @Autowired PostService postService;
 
-    private PostNewRequest createPost() {
+    @Autowired PostRepository postRepository;
+
+    @AfterEach
+    void tearDown() {
+        postRepository.deleteAllInBatch();
+    }
+
+    private PostNewRequest createPostNewRequest() {
         return PostNewRequest.builder()
                 .title("title")
                 .content("content")
@@ -33,12 +40,12 @@ class PostServiceTest {
                 .build();
     }
 
+    @DisplayName("게시글을 저장한다.")
     @Test
-    @DisplayName("post를 저장한다.")
     void savePostTest() {
         //given
-        PostNewRequest post = createPost();
-        Long savedId = postService.savePost(post);
+        PostNewRequest request = createPostNewRequest();
+        Long savedId = postService.savePost(request);
 
         //when
         PostResponse postResponse = postService.findPostById(savedId);
@@ -47,12 +54,12 @@ class PostServiceTest {
         assertThat(savedId).isEqualTo(postResponse.getId());
     }
 
+    @DisplayName("0번째부터 100개의 게시글을 시간 순으로 반환한다.")
     @Test
-    @DisplayName("0번째부터 100개의 post를 시간 순으로 반환한다.")
     void findPostsTest() {
         //given
         for (int i=0; i < 100; i++) {
-            postService.savePost(createPost());
+            postService.savePost(createPostNewRequest());
         }
 
         Pageable pageable = PageRequest.of(0, 100);
@@ -64,11 +71,11 @@ class PostServiceTest {
         assertThat(result.getSize()).isEqualTo(100);
     }
 
+    @DisplayName("게시글 하나를 조회한다.")
     @Test
-    @DisplayName("post를 조회한다.")
     void findByIdTest() {
         //given
-        PostNewRequest post = createPost();
+        PostNewRequest post = createPostNewRequest();
         Long savedId = postService.savePost(post);
 
         //when
@@ -78,8 +85,8 @@ class PostServiceTest {
         assertThat(result.getId()).isEqualTo(savedId);
     }
 
+    @DisplayName("게시글이 없으면 PostNotFoundException이 발생한다.")
     @Test
-    @DisplayName("post가 없으면 PostNotFoundException 발생")
     void findById_Ex() {
         //given
         Long id = 1L;
@@ -89,11 +96,11 @@ class PostServiceTest {
                 .isInstanceOf(PostNotFoundException.class);
     }
 
+    @DisplayName("게시글을 변경한다.")
     @Test
-    @DisplayName("post를 변경한다.")
     void updatePostTest() {
         //given
-        Long savedId = postService.savePost(createPost());
+        Long savedId = postService.savePost(createPostNewRequest());
         PostUpdateRequest updatedPost = createUpdatedPost();
 
         //when
@@ -105,22 +112,23 @@ class PostServiceTest {
         assertThat(postResponse.getContent()).isEqualTo("updatedContent");
     }
 
+    @DisplayName("변경할 게시글이 없으면 PostNotFoundException이 발생한다.")
     @Test
-    @DisplayName("변경할 post가 없으면 PostNotFoundException 발생")
     void updatePost_Ex() {
         //given
         Long id = 1L;
         PostUpdateRequest updatedPost = createUpdatedPost();
+
         //when //then
         assertThatThrownBy(() -> postService.updatePost(id, updatedPost))
                 .isInstanceOf(PostNotFoundException.class);
     }
 
+    @DisplayName("게시글을 제거한다.")
     @Test
-    @DisplayName("post를 제거한다.")
     void deletePostByIdTest() {
         //given
-        PostNewRequest post = createPost();
+        PostNewRequest post = createPostNewRequest();
         Long savedId = postService.savePost(post);
 
         //when
@@ -131,8 +139,8 @@ class PostServiceTest {
                 .isInstanceOf(PostNotFoundException.class);
     }
 
+    @DisplayName("제거할 게시글이 없으면 PostNotFoundException이 발생한다.")
     @Test
-    @DisplayName("제거할 post가 없으면 PostNotFoundException 발생")
     void deletePostById_Ex() {
         //given
         Long id = 1L;
@@ -142,12 +150,12 @@ class PostServiceTest {
                 .isInstanceOf(PostNotFoundException.class);
     }
 
+    @DisplayName("제목에 키워드를 포함한 모든 게시글을 반환한다.")
     @Test
-    @DisplayName("제목에 keyword를 포함한 모든 post를 반환한다.")
     void findPostsByKeyword() {
         //given
         for (int i=0; i < 3; i++) {
-            PostNewRequest request = createPost();
+            PostNewRequest request = createPostNewRequest();
             postService.savePost(request);
         }
 

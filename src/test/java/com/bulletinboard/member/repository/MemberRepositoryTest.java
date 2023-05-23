@@ -1,16 +1,15 @@
 package com.bulletinboard.member.repository;
 
+import com.bulletinboard.IntegrationTestSupport;
 import com.bulletinboard.member.domain.Member;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
-@SpringBootTest
-class MemberRepositoryTest {
+class MemberRepositoryTest extends IntegrationTestSupport {
 
     @Autowired MemberRepository memberRepository;
 

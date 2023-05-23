@@ -1,21 +1,25 @@
 package com.bulletinboard.member.service;
 
+import com.bulletinboard.IntegrationTestSupport;
 import com.bulletinboard.member.dto.MemberNewRequest;
 import com.bulletinboard.member.exception.InvalidMemberEmailException;
+import com.bulletinboard.member.repository.MemberRepository;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-@Transactional
-@SpringBootTest
-class MemberServiceTest {
+class MemberServiceTest extends IntegrationTestSupport {
 
     @Autowired MemberService memberService;
+
+    @Autowired MemberRepository memberRepository;
+
+    @AfterEach
+    void tearDown() {
+        memberRepository.deleteAllInBatch();
+    }
 
     @DisplayName("회원을 회원목록에 저장한다.")
     @Test

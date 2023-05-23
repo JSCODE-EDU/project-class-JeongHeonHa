@@ -1,10 +1,10 @@
 package com.bulletinboard.post.repository;
 
+import com.bulletinboard.IntegrationTestSupport;
 import com.bulletinboard.post.domain.Post;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,9 +13,8 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 
-@SpringBootTest
 @Transactional
-class PostRepositoryTest {
+class PostRepositoryTest extends IntegrationTestSupport {
 
     @Autowired PostRepository postRepository;
 
@@ -26,8 +25,8 @@ class PostRepositoryTest {
                 .build();
     }
 
+    @DisplayName("게시글을 저장한다.")
     @Test
-    @DisplayName("post를 저장한다.")
     void saveTest() {
         //given
         Post post = createPost();
@@ -39,8 +38,8 @@ class PostRepositoryTest {
         assertThat(result).isSameAs(post);
     }
 
+    @DisplayName("게시글 하나를 반환한다.")
     @Test
-    @DisplayName("post를 반환한다.")
     void findByIdTest() {
         //given
         Post post = createPost();
@@ -53,8 +52,8 @@ class PostRepositoryTest {
         assertThat(result.get()).isEqualTo(post);
     }
 
+    @DisplayName("0번째 페이지 부터 2개의 게시글을 반환한다.")
     @Test
-    @DisplayName("0번째 페이지 부터 2개의 post를 반환한다.")
     void findAllTest() {
         //given
         for (int i=0; i < 2; i++) {
@@ -72,8 +71,8 @@ class PostRepositoryTest {
         assertThat(posts.getSize()).isEqualTo(2);
     }
 
+    @DisplayName("게시글을 제거한다.")
     @Test
-    @DisplayName("post를 제거한다.")
     void deleteByIdTest() {
         //given
         Post post = createPost();
@@ -87,8 +86,8 @@ class PostRepositoryTest {
         assertThat(result.isEmpty()).isTrue();
     }
 
+    @DisplayName("제목에 키워드를 포함한 모든 게시글을 반환한다.")
     @Test
-    @DisplayName("제목에 keyword를 포함한 모든 post를 반환한다.")
     void findByTitleContaining() {
         //given
         for (int i=1; i < 11; i++) {
