@@ -1,0 +1,15 @@
+ifndef::snippets[]
+:snippets: ../../build/generated-snippetes
+endif::[]
+= Bulletin Board REST API
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 2
+:sectlinks:
+
+[[Post-API]]
+== Post API
+
+include::api/post/post.adoc[]
