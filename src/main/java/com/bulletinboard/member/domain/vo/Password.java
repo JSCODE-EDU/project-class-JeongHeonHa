@@ -15,14 +15,14 @@ public class Password {
     private static final int PASSWORD_OVER_LIMIT = 15;
 
     @Column(name = "password")
-    private String password;
+    private String value;
 
     protected Password() {
     }
 
-    private Password(String password) {
-        validate(password);
-        this.password = password;
+    private Password(String value) {
+        validate(value);
+        this.value = value;
     }
 
     public static Password of(String password) {
@@ -45,11 +45,11 @@ public class Password {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Password password1 = (Password) o;
-        return Objects.equals(password, password1.password);
+        return Objects.equals(value, password1.value);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(password);
+        return Objects.hash(value);
     }
 }

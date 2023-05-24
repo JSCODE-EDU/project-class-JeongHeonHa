@@ -22,7 +22,7 @@ class EmailTest {
         Email result = Email.of(email);
 
         //then
-        assertThat(result.getEmail()).isEqualTo(email);
+        assertThat(result.getValue()).isEqualTo(email);
     }
 
     @DisplayName("이메일은 @가 2개 이상이면 예외를 발생시킨다.")

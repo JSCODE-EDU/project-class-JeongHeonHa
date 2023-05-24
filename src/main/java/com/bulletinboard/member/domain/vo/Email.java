@@ -14,14 +14,14 @@ public class Email {
     private static final String EMAIL_FORMAT = "^[0-9a-zA-Z]([-_.]?[0-9a-zA-Z])*@[0-9a-zA-Z]([-_.]?[0-9a-zA-Z])*.[a-zA-Z]{2,3}$";
 
     @Column(name = "email", unique = true)
-    private String email;
+    private String value;
 
     protected Email() {
     }
 
-    private Email(String email) {
-        validate(email);
-        this.email = email;
+    private Email(String value) {
+        validate(value);
+        this.value = value;
     }
 
     public static Email of(String email) {
@@ -43,11 +43,11 @@ public class Email {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Email email1 = (Email) o;
-        return Objects.equals(email, email1.email);
+        return Objects.equals(value, email1.value);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(email);
+        return Objects.hash(value);
     }
 }

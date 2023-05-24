@@ -19,7 +19,7 @@ class PasswordTest {
         Password result = Password.of(password);
 
         //then
-        assertThat(result.getPassword()).isEqualTo(password);
+        assertThat(result.getValue()).isEqualTo(password);
     }
 
     @DisplayName("비밀번호는 8자리 이상 15자리 이하여야한다.")
