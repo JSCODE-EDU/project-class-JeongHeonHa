@@ -6,10 +6,7 @@ import com.bulletinboard.member.domain.vo.Password;
 import lombok.Builder;
 import lombok.Getter;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Getter
 @Entity
@@ -31,11 +28,12 @@ public class Member extends BaseTimeEntity {
         this.password = Password.of(password);
     }
 
-    public String getEmailValue() {
-        return email.getEmail();
+    public String getEmail() {
+        return email.getValue();
     }
 
-    public String getPasswordValue() {
-        return password.getPassword();
+    public String getPassword() {
+        return password.getValue();
     }
+
 }

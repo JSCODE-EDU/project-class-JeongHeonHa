@@ -14,7 +14,7 @@ class MemberTest {
         Member member = createMember("email1111@gmail.com", "password");
 
         //when //then
-        assertThat(member.getEmailValue()).isEqualTo("email1111@gmail.com");
+        assertThat(member.getEmail()).isEqualTo("email1111@gmail.com");
     }
 
     @DisplayName("비밀번호의 원시값을 반환한다.")
@@ -24,7 +24,7 @@ class MemberTest {
         Member member = createMember("email1111@gmail.com", "password");
 
         //when //then
-        assertThat(member.getPasswordValue()).isEqualTo("password");
+        assertThat(member.getPassword()).isEqualTo("password");
     }
 
     @DisplayName("이메일 타입의 값을 반환한다.")
