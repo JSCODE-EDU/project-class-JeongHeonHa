@@ -1,66 +1,103 @@
 package com.bulletinboard.post.controller;
 
+import com.bulletinboard.ControllerTestSupport;
 import com.bulletinboard.post.dto.PostNewRequest;
 import com.bulletinboard.post.dto.PostResponse;
 import com.bulletinboard.post.dto.PostUpdateRequest;
-import com.bulletinboard.post.service.PostService;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.bulletinboard.post.exception.InvalidContentException;
+import com.bulletinboard.post.exception.InvalidTitleException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.*;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.restdocs.payload.JsonFieldType;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static java.time.LocalDateTime.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
+import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.snippet.Attributes.key;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = PostController.class)
-class PostControllerTest {
+class PostControllerTest extends ControllerTestSupport {
 
-    @Autowired private MockMvc mockMvc;
-
-    @Autowired private ObjectMapper objectMapper;
-
-    @MockBean private PostService postService;
-
-    @Test
-    @DisplayName("게시글을 저장한다.")
-    void savePost() throws Exception {
-        //given
-        Long id = 1L;
-        PostNewRequest request = PostNewRequest.builder()
+    private PostNewRequest createPostNewRequest() {
+        return PostNewRequest.builder()
                 .title("title")
                 .content("content")
                 .build();
+    }
 
-        PostResponse response = createPostResponse(id, now());
+    private PostResponse createPostResponse(long id, LocalDateTime now) {
+        return PostResponse.builder()
+                .id(id)
+                .title("title")
+                .content("content")
+                .createdDate(now)
+                .updatedDate(now)
+                .build();
+    }
 
-        when(postService.savePost(any(PostNewRequest.class))).thenReturn(id);
-        when(postService.findPostById(id)).thenReturn(response);
+    private LocalDateTime createTime() {
+        return LocalDateTime.of(2022, 02, 22, 22, 22, 22);
+    }
+
+    @DisplayName("게시글을 저장하면 201을 반환한다.")
+    @Test
+    void savePost() throws Exception {
+        //given
+        Long id = 1L;
+        PostNewRequest request = createPostNewRequest();
+
+        PostResponse response = createPostResponse(id, createTime());
+
+        given(postService.savePost(any(PostNewRequest.class))).willReturn(id);
+        given(postService.findPostById(id)).willReturn(response);
 
         //when //then
         mockMvc.perform(post("/posts")
-                .contentType(APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.title").value("title"))
-                .andExpect(jsonPath("$.content").value("content"));
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpectAll(
+                        status().isCreated(),
+                        jsonPath("$.id").value(1L),
+                        jsonPath("$.title").value("title"),
+                        jsonPath("$.content").value("content")
+                ).andDo(document("post/create/success",
+                        preprocessRequest(prettyPrint()),
+                        preprocessResponse(prettyPrint()),
+                        requestFields(
+                                fieldWithPath("title").type(JsonFieldType.STRING)
+                                        .description("제목")
+                                        .attributes(key("constraints").value("제목은 1글자 이상 15글자 이하여야합니다.")),
+                                fieldWithPath("content").type(JsonFieldType.STRING)
+                                        .description("내용")
+                                        .attributes(key("constraints").value("내용은 1글자 이상 1000글자 이하여야합니다."))
+                        ),
+                        responseFields(
+                                fieldWithPath("id").type(JsonFieldType.NUMBER)
+                                        .description("게시글 id"),
+                                fieldWithPath("title").type(JsonFieldType.STRING)
+                                        .description("게시글 제목"),
+                                fieldWithPath("content").type(JsonFieldType.STRING)
+                                        .description("게시글 내용"),
+                                fieldWithPath("createdDate").type(JsonFieldType.STRING)
+                                        .description("게시글 생성일"),
+                                fieldWithPath("updatedDate").type(JsonFieldType.STRING)
+                                        .description("게시글 수정일")
+                        )
+                ));
     }
 
-    @DisplayName("제목이 비어있으면 예외를 발생시킨다.")
+    @DisplayName("제목이 비어있으면 400예외를 발생시킨다.")
     @Test
     void createPost_Title_Blank_Ex() throws Exception {
         //given
@@ -68,14 +105,77 @@ class PostControllerTest {
                 .title("")
                 .content("content")
                 .build();
+
         //when //then
         mockMvc.perform(post("/posts")
-                .contentType(APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-                .andExpect(jsonPath("$.statusCode").value(400));
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(jsonPath("$.statusCode").value(400))
+                .andDo(document("post/create/fail/emptyTitle",
+                        preprocessRequest(prettyPrint()),
+                        preprocessResponse(prettyPrint()),
+                        requestFields(
+                                fieldWithPath("title").type(JsonFieldType.STRING)
+                                        .description("게시글 제목")
+                                        .attributes(key("constraints").value("제목은 1글자 이상 15글자 이하여야합니다.")),
+                                fieldWithPath("content").type(JsonFieldType.STRING)
+                                        .description("게시글 내용")
+                                        .attributes(key("constraints").value("내용은 1글자 이상 1000글자 이하여야합니다."))
+                        ),
+                        responseFields(
+                                fieldWithPath("timestamp").type(JsonFieldType.STRING)
+                                        .description("예외 발생 시간"),
+                                fieldWithPath("statusCode").type(JsonFieldType.NUMBER)
+                                        .description("예외 상태 코드"),
+                                fieldWithPath("error").type(JsonFieldType.STRING)
+                                        .description("발생 예외"),
+                                fieldWithPath("message").type(JsonFieldType.STRING)
+                                        .description("예외 메세지")
+                        )
+                ));
     }
 
-    @DisplayName("제목이 비어있으면 예외를 발생시킨다.")
+    @DisplayName("제목이 15글자를 넘으면 400예외를 발생시킨다.")
+    @Test
+    void createPost_Title_Over_15_Ex() throws Exception {
+        //given
+        PostNewRequest request = PostNewRequest.builder()
+                .title("a".repeat(16))
+                .content("content")
+                .build();
+
+        given(postService.savePost(any(PostNewRequest.class))).willThrow(InvalidTitleException.class);
+
+        //when //then
+        mockMvc.perform(post("/posts")
+                        .contentType(APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(jsonPath("$.statusCode").value(400))
+                .andDo(document("post/create/fail/overLimitTitle",
+                        preprocessRequest(prettyPrint()),
+                        preprocessResponse(prettyPrint()),
+                        requestFields(
+                                fieldWithPath("title").type(JsonFieldType.STRING)
+                                        .description("게시글 제목")
+                                        .attributes(key("constraints").value("제목은 1글자 이상 15글자 이하여야합니다.")),
+                                fieldWithPath("content").type(JsonFieldType.STRING)
+                                        .description("게시글 내용")
+                                        .attributes(key("constraints").value("내용은 1글자 이상 1000글자 이하여야합니다."))
+                        ),
+                        responseFields(
+                                fieldWithPath("timestamp").type(JsonFieldType.STRING)
+                                        .description("예외 발생 시간"),
+                                fieldWithPath("statusCode").type(JsonFieldType.NUMBER)
+                                        .description("예외 상태 코드"),
+                                fieldWithPath("error").type(JsonFieldType.STRING)
+                                        .description("발생 예외"),
+                                fieldWithPath("message").type(JsonFieldType.STRING)
+                                        .description("예외 메세지")
+                        )
+                ));
+    }
+
+    @DisplayName("내용이 비어있으면 400예외를 발생시킨다.")
     @Test
     void createPost_Content_Blank_Ex() throws Exception {
         //given
@@ -83,38 +183,106 @@ class PostControllerTest {
                 .title("title")
                 .content("")
                 .build();
+
         //when //then
         mockMvc.perform(post("/posts")
                         .contentType(APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(jsonPath("$.statusCode").value(400));
+                .andExpect(jsonPath("$.statusCode").value(400))
+                .andDo(document("post/create/fail/emptyContent",
+                        preprocessRequest(prettyPrint()),
+                        preprocessResponse(prettyPrint()),
+                        requestFields(
+                                fieldWithPath("title").type(JsonFieldType.STRING)
+                                        .description("게시글 제목")
+                                        .attributes(key("constraints").value("제목은 1글자 이상 15글자 이하여야합니다.")),
+                                fieldWithPath("content").type(JsonFieldType.STRING)
+                                        .description("게시글 내용")
+                                        .attributes(key("constraints").value("내용은 1글자 이상 1000글자 이하여야합니다."))
+                        ),
+                        responseFields(
+                                fieldWithPath("timestamp").type(JsonFieldType.STRING)
+                                        .description("예외 발생 시간"),
+                                fieldWithPath("statusCode").type(JsonFieldType.NUMBER)
+                                        .description("예외 상태 코드"),
+                                fieldWithPath("error").type(JsonFieldType.STRING)
+                                        .description("발생 예외"),
+                                fieldWithPath("message").type(JsonFieldType.STRING)
+                                        .description("예외 메세지")
+                        )
+                ));
     }
 
+    @DisplayName("내용이 1000자를 넘어가면 400예외를 발생시킨다.")
     @Test
-    @DisplayName("모든 게시글을 찾는다.")
+    void createPost_Content_Over_1000_Ex() throws Exception {
+        //given
+        PostNewRequest request = PostNewRequest.builder()
+                .title("title")
+                .content("a".repeat(1001))
+                .build();
+
+        given(postService.savePost(any(PostNewRequest.class))).willThrow(InvalidContentException.class);
+
+        //when //then
+        mockMvc.perform(post("/posts")
+                .contentType(APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(jsonPath("$.statusCode").value(400))
+                .andDo(document("post/create/fail/overLimitContent",
+                        preprocessRequest(prettyPrint()),
+                        preprocessResponse(prettyPrint()),
+                        requestFields(
+                                fieldWithPath("title").type(JsonFieldType.STRING)
+                                        .description("게시글 제목")
+                                        .attributes(key("constraints").value("제목은 1글자 이상 15글자 이하여야합니다.")),
+                                fieldWithPath("content").type(JsonFieldType.STRING)
+                                        .description("게시글 내용")
+                                        .attributes(key("constraints").value("내용은 1글자 이상 1000글자 이하여야합니다."))
+                        ),
+                        responseFields(
+                                fieldWithPath("timestamp").type(JsonFieldType.STRING)
+                                        .description("예외 발생 시간"),
+                                fieldWithPath("statusCode").type(JsonFieldType.NUMBER)
+                                        .description("예외 상태 코드"),
+                                fieldWithPath("error").type(JsonFieldType.STRING)
+                                        .description("발생 예외"),
+                                fieldWithPath("message").type(JsonFieldType.STRING)
+                                        .description("예외 메세지")
+                        )
+                ));
+    }
+
+    @DisplayName("모든 게시글을 찾으면 200을 반환한다.")
+    @Test
     void findPosts() throws Exception {
         //given
-        Slice<PostResponse> slice = new SliceImpl<>(List.of(createPostResponse(1L, now()), createPostResponse(2L, now())));
+        Slice<PostResponse> slice = new SliceImpl<>(List.of(
+                createPostResponse(1L, createTime()),
+                createPostResponse(2L, createTime()))
+        );
 
-        when(postService.findPosts(any(Pageable.class))).thenReturn(slice);
+        given(postService.findPosts(any(Pageable.class))).willReturn(slice);
 
         //when //then
         mockMvc.perform(get("/posts")
                         .accept(APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].id").value(1L))
-                .andExpect(jsonPath("$.content[1].id").value(2L));
+                .andExpectAll(
+                        status().isOk(),
+                        jsonPath("$.content[0].id").value(1L),
+                        jsonPath("$.content[1].id").value(2L));
     }
 
-    @DisplayName("101개 이상의 게시글을 조회하면 예외가 발생한다.")
+    @DisplayName("101개 이상의 게시글을 조회하면 400예외가 발생한다.")
     @Test
     void findPosts_Ex() throws Exception {
+        //given
         int page = 0;
         int size = 101;
         String sort = "createdDate";
         Sort.Direction direction = Sort.Direction.DESC;
 
+        //when //then
         mockMvc.perform(get("/posts")
                         .param("page", String.valueOf(page))
                         .param("size", String.valueOf(size))
@@ -125,11 +293,17 @@ class PostControllerTest {
                 .andExpect(jsonPath("$.statusCode").value(400));
     }
 
+    @DisplayName("id로 하나의 게시글을 찾는다.")
     @Test
-    @DisplayName("id로 게시글을 찾는다.")
     void findPostById() throws Exception {
         //given
-        PostResponse post = new PostResponse(1L, "title", "content", now(), now());
+        PostResponse post = PostResponse.builder()
+                .id(1L)
+                .title("title")
+                .content("content")
+                .createdDate(createTime())
+                .updatedDate(createTime())
+                .build();
 
         given(postService.findPostById(1L)).willReturn(post);
 
@@ -143,8 +317,12 @@ class PostControllerTest {
     @Test
     void findPostByKeyword() throws Exception {
         //given
-        SliceImpl<PostResponse> slice = new SliceImpl<>(List.of(createPostResponse(1L, now()), createPostResponse(2L, now())));
-        when(postService.findPostsByKeyword(anyString(), any(Pageable.class))).thenReturn(slice);
+        SliceImpl<PostResponse> slice = new SliceImpl<>(List.of(
+                createPostResponse(1L, createTime()),
+                createPostResponse(2L, createTime()))
+        );
+
+        given(postService.findPostsByKeyword(anyString(), any(Pageable.class))).willReturn(slice);
 
         //when //then
         mockMvc.perform(get("/posts/word")
@@ -154,12 +332,16 @@ class PostControllerTest {
                 .andExpect(jsonPath("$.content[0].id").value(1L));
     }
 
-    @DisplayName("키워드가 비어있으면 예외가 발생한다.")
+    @DisplayName("키워드가 비어있으면 400예외가 발생한다.")
     @Test
     void findPostByKeyword_NOTBLANK_EX() throws Exception {
         //given
-        SliceImpl<PostResponse> slice = new SliceImpl<>(List.of(createPostResponse(1L, now()), createPostResponse(2L, now())));
-        when(postService.findPostsByKeyword(anyString(), any(Pageable.class))).thenReturn(slice);
+        SliceImpl<PostResponse> slice = new SliceImpl<>(List.of(
+                createPostResponse(1L, createTime()),
+                createPostResponse(2L, createTime()))
+        );
+
+        given(postService.findPostsByKeyword(anyString(), any(Pageable.class))).willReturn(slice);
 
         //when //then
         mockMvc.perform(get("/posts/word")
@@ -169,12 +351,22 @@ class PostControllerTest {
                 .andExpect(jsonPath("$.statusCode").value(400));
     }
 
-    @Test
     @DisplayName("게시글을 변경한다.")
+    @Test
     void updatePost() throws Exception {
         //given
-        PostUpdateRequest request = new PostUpdateRequest("title1", "content1");
-        PostResponse response = new PostResponse(1L, "title1", "content1", now(), now());
+        PostUpdateRequest request = PostUpdateRequest.builder()
+                .title("updatedTitle")
+                .content("updatedContent")
+                .build();
+
+        PostResponse response = PostResponse.builder()
+                .id(1L)
+                .title("updatedTitle")
+                .content("updatedContent")
+                .createdDate(createTime())
+                .updatedDate(createTime())
+                .build();
 
         given(postService.findPostById(1L)).willReturn(response);
 
@@ -182,16 +374,17 @@ class PostControllerTest {
         mockMvc.perform(put("/posts/{id}", 1L)
                         .content(objectMapper.writeValueAsString(request))
                         .contentType(APPLICATION_JSON)
-                        .accept(APPLICATION_JSON)
-                )
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L))
-                .andExpect(jsonPath("$.title").value("title1"))
-                .andExpect(jsonPath("$.content").value("content1"));
+                        .accept(APPLICATION_JSON))
+                .andExpectAll(
+                        status().isOk(),
+                        jsonPath("$.id").value(1L),
+                        jsonPath("$.title").value("updatedTitle"),
+                        jsonPath("$.content").value("updatedContent")
+                );
     }
 
-    @Test
     @DisplayName("게시글을 삭제한다.")
+    @Test
     void deletePost() throws Exception {
         //given
         Long id = 1L;
@@ -202,14 +395,5 @@ class PostControllerTest {
                 )
                 .andExpect(status().isNoContent());
 
-    }
-
-    private static PostResponse createPostResponse(long id, LocalDateTime now) {
-        return PostResponse.builder()
-                .id(id)
-                .title("title")
-                .content("content")
-                .createdDate(now)
-                .build();
     }
 }

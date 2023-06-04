@@ -1,9 +1,9 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://bulletin-board.cbrjnofn07hp.ap-northeast-2.rds.amazonaws.com:3306/bulletin_board?characterEncoding=UTF-8&serverTimezone=UTC
-    username: admin
-    password: qwer1234
+    url:
+    username:
+    password:
 
   jpa:
     hibernate:

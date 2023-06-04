@@ -2,6 +2,7 @@ spring:
   profiles:
     active: prod
 
-  mvc:
-    pathmatch:
-      matching-strategy: ANT_PATH_MATCHER
+jwt:
+  header: Authorization
+  secret: 4de8e25761ded5293cd2a17223e84aa12e5941c69de94556f06cc4ea605e222b585c91546da812d5b742a8e010c2d84eb10479eaf956d95beb2938e01d22275a
+  token-validity-in-seconds: 86400

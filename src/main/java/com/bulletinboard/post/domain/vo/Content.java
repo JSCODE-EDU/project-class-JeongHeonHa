@@ -20,15 +20,15 @@ public class Content {
     }
 
     private Content(String content) {
+        validate(content);
         this.content = content;
     }
 
     public static Content from(String content) {
-        validate(content);
         return new Content(content);
     }
 
-    private static void validate(String content) {
+    private void validate(String content) {
         if (content.length() > LIMIT_LENGTH) {
             throw new InvalidContentException();
         }
