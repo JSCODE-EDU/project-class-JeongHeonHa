@@ -1,5 +1,6 @@
 package com.bulletinboard.jwt;
 
+import com.auth.domain.Authority;
 import com.auth.dto.TokenInfo;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
@@ -18,59 +19,40 @@ import java.security.Key;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Component
 public class JwtProvider {
 
+    private static final String AUTHORITIES_KEY = "auth";
     private final Key key;
+    private final long validityInMilliseconds;
 
-    public JwtProvider(@Value("${jwt.secret}") String secretKey) {
+    public JwtProvider(
+            @Value("${jwt.secret}") String secretKey,
+            @Value("{jwt.token-validity-in-seconds}") long validityInMilliseconds) {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         this.key = Keys.hmacShaKeyFor(keyBytes);
+        this.validityInMilliseconds = validityInMilliseconds;
     }
 
-    public TokenInfo generateToken(Authentication authentication) {
-        String authorities = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.joining(","));
+    public String createToken(String email, List<Authority> roles) {
+        Date now = new Date();
+        Date validity = new Date(now.getTime() + validityInMilliseconds);
 
-        long now = (new Date()).getTime();
-        Date accessTokenExpiresIn = new Date(now + 86400000);
-        String accessToken = Jwts.builder()
-                .setSubject(authentication.getName())
-                .claim("auth", authorities)
-                .setExpiration(accessTokenExpiresIn)
+        return Jwts.builder()
+                .setSubject(email)
+                .claim(AUTHORITIES_KEY, roles)
+                .setIssuedAt(now)
+                .setExpiration(validity)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
-
-        String refreshToken = Jwts.builder()
-                .setExpiration(new Date(now + 86400000))
-                .signWith(key, SignatureAlgorithm.HS256)
-                .compact();
-
-        return TokenInfo.builder()
-                .grantType("Bearer")
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .build();
     }
 
     public Authentication getAuthentication(String accessToken) {
-        Claims claims = parseClaims(accessToken);
-
-        if (claims.get("auth") == null) {
-            throw new RuntimeException("권한 정보가 없는 토큰입니다.");
-        }
-
-        Collection<? extends GrantedAuthority> authorities =
-                Arrays.stream(claims.get("auth").toString().split(","))
-                        .map(SimpleGrantedAuthority::new)
-                        .collect(Collectors.toList());
-
-        UserDetails principal = new User(claims.getSubject(), "", authorities);
-        return new UsernamePasswordAuthenticationToken(principal, "", authorities);
+        
     }
 
     public boolean validateToken(String token) {

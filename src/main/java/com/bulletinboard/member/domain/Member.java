@@ -35,5 +35,4 @@ public class Member extends BaseTimeEntity {
     public String getPassword() {
         return password.getValue();
     }
-
 }
